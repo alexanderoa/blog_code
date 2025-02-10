@@ -16,9 +16,11 @@ def cuped_generator(
      - Post-exposure simulated as (Pre + treatment*effect_size + noise)
 
     :param sample_size: sample size for simulated dataset
-    :t_proportion: proportion of samples assigned to treatment
-    :effect_size: size of the effect of treatment (additive)
-    :seed: seed for numpy random number generator
+    :param t_proportion: proportion of samples assigned to treatment
+    :param effect_size: size of the effect of treatment (additive)
+    :param seed: seed for numpy random number generator
+
+    :return df: data frame with simulated data
     """
     rng = np.random.default_rng(seed=seed)
 
