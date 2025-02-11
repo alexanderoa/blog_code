@@ -41,3 +41,44 @@ def cuped_generator(
         }
     )
     return df
+
+def many_cuped_sims(
+    n_sims = 100,
+    sample_size = 500,
+    seed = 123
+):
+    '''
+    Simulates draws from cuped_generator and produces three different estimates
+
+    :param n_sims: number of datasets to simulate
+    :param sample_size: number of samples in each dataset
+    :param seed: seed for meta_rng
+
+    :return simple: estimates for simple regression (i.e. diff-in-means)
+    :return cuped: estimates for CUPED
+    :return adjust: estimates for regression-adjustment
+    '''
+    meta_rng = np.random.default_rng(seed=seed)
+    simple = np.zeros(n_sims)
+    cuped = np.zeros(n_sims)
+    adjust = np.zeros(n_sims)
+    for i in range(n_sims):
+        data = cuped_generator(
+            seed=meta_rng.integers(1,1e10),
+            sample_size = sample_size)
+
+        cuped_lm = sm.OLS(data['Post_trigger'], data['Pre_trigger']).fit()
+        theta = cuped_lm.params[0]
+        data['Post_cuped'] = data['Post_trigger'] - theta*data['Pre_normalized']
+
+        reg = smf.ols("Post_trigger ~ Treatment",data).fit()
+        simple[i] = reg.params['Treatment']
+
+        cuped_reg = smf.ols("Post_cuped ~ Treatment", data).fit()
+        cuped[i] = cuped_reg.params['Treatment']
+
+        reg_adj = smf.ols(
+            formula="Post_trigger ~ Treatment + Pre_trigger + Treatment:Pre_normalized",
+            data=data).fit()
+        adjust[i] = reg_adj.params['Treatment']
+    return simple, cuped, adjust
