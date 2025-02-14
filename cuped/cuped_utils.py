@@ -45,6 +45,7 @@ def cuped_generator(
 def many_cuped_sims(
     n_sims = 100,
     sample_size = 500,
+    t_proportion = 0.5,
     seed = 123
 ):
     '''
@@ -65,9 +66,10 @@ def many_cuped_sims(
     for i in range(n_sims):
         data = cuped_generator(
             seed=meta_rng.integers(1,1e10),
-            sample_size = sample_size)
+            sample_size = sample_size,
+            t_proportion = t_proportion)
 
-        cuped_lm = sm.OLS(data['Post_trigger'], data['Pre_trigger']).fit()
+        cuped_lm = sm.OLS(data['Post_trigger'], data['Pre_normalized']).fit()
         theta = cuped_lm.params[0]
         data['Post_cuped'] = data['Post_trigger'] - theta*data['Pre_normalized']
 
