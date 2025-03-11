@@ -59,7 +59,7 @@ def nonlinear_variance_sim(
     mlrate = np.zeros(n_sims)
 
     for i in range(n_sims):
-        sim_seed = rng.integers(low=0, high = 100000)
+        sim_seed = meta_rng.integers(low=0, high = 100000)
         data = nonlinear_generator(seed=sim_seed)
 
         diff_reg = smf.ols("Y~T", data=data).fit(cov_type='HC2')
