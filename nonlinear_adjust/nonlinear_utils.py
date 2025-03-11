@@ -48,3 +48,41 @@ def mlrate_df(
     final["G_centered"] = combined - np.mean(combined)
 
     return final
+
+def nonlinear_variance_sim(
+    n_sims = 100,
+    seed = 123
+):
+    meta_rng = np.random.default_rng(seed=seed)
+    diff = np.zeros(n_sims)
+    adjust = np.zeros(n_sims)
+    mlrate = np.zeros(n_sims)
+
+    for i in range(n_sims):
+        sim_seed = rng.integers(low=0, high = 100000)
+        data = nonlinear_generator(seed=sim_seed)
+
+        diff_reg = smf.ols("Y~T", data=data).fit(cov_type='HC2')
+        diff[i] = diff_reg.params['T']
+
+        adj_reg = smf.ols(
+            "Y ~ X + T + X_centered:T",
+            data = data
+        ).fit(cov_type='HC2')
+        adjust[i] = adj_reg.params['T']
+
+        final = mlrate_df(
+            data = data,
+            model = GradientBoostingRegressor()
+        )
+        ml_reg = smf.ols(
+            "Y ~ T + G + T:G_centered",
+            data = final
+        ).fit(cov_type="HC2")
+        mlrate[i] = ml_reg.params['T']
+    diff_df = pd.DataFrame({'Estimate':diff, "Method": ['Diff-in-Means']*n_sims})
+    adj_df = pd.DataFrame({'Estimate':adjust, "Method": ['Adjustment']*n_sims}) 
+    ml_df = pd.DataFrame({'Estimate':mlrate, "Method": ['MLRATE']*n_sims})
+    df = pd.DataFrame()
+    df = df.append([diff_df, adj_df, ml_df])
+    return df
