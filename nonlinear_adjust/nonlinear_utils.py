@@ -1,6 +1,8 @@
 from sklearn.model_selection import KFold
 import numpy as np
 import pandas as pd
+import statsmodels.formula.api as smf
+from sklearn.ensemble import GradientBoostingRegressor
 
 def nonlinear_generator(
     sample_size = 500,
